@@ -7,8 +7,12 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib import messages
 from datetime import datetime, timedelta
-import pickle
-from apiclient.discovery import build
+import os.path
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 
@@ -182,8 +186,7 @@ def create_appoint(request, pk):
             speciality = form.cleaned_data['speciality']
             end_time = calendar_app(full_name, app_date, app_time, location)
             print(type(end_time))
-            appoint = Appointment(
-                doctor_name=docof, patient_name=user, app_date=app_date, app_time=app_time, speciality=speciality, end_time=end_time)
+            appoint = Appointment( doctor_name=docof, patient_name=user, app_date=app_date, app_time=app_time, speciality=speciality, end_time=end_time)
             appoint.save()
             messages.success(
                 request, 'Your Appointment has been scheduled')
@@ -198,16 +201,37 @@ def create_appoint(request, pk):
 
 
 def calendar_app(doctor, dateof, timeof, city):
-    scopes = ['https://www.googleapis.com/auth/calendar']
-    flow = InstalledAppFlow.from_client_secrets_file(
-        "app\client_secret.json", scopes=scopes)
+    # scopes = ['https://www.googleapis.com/auth/calendar']
+    # flow = InstalledAppFlow.from_client_secrets_file(
+    #     "app\client_secret.json", scopes=scopes)
     # credentials = flow.run_console()
     # pickle.dump(credentials, open("token.pkl", "wb"))
 
-    credentials = pickle.load(open("token.pkl", "rb"))
-    service = build("calendar", "v3", credentials=credentials)
-    result = service.calendarList().list().execute()
-    calendar_id = result['items'][1]['id']
+    # credentials = pickle.load(open("token.pkl", "rb"))
+    # service = build("calendar", "v3", credentials=credentials)
+    
+
+    SCOPES = ['https://www.googleapis.com/auth/calendar']
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'app\client_secret.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+    service = build('calendar', 'v3', credentials=creds)
+    
+    calendar_id = 'psadithyan30@gmail.com'
     result = service.events().list(calendarId=calendar_id).execute()
 
     date_of = dateof.strftime("%d")
@@ -216,9 +240,9 @@ def calendar_app(doctor, dateof, timeof, city):
     hour_of = timeof.strftime("%H")
     min_of = timeof.strftime("%M")
     sec_of = timeof.strftime("%S")
+    msec_of=timeof.strftime("%f")
 
-    start_time = datetime(int(year_of), int(month_of), int(
-        date_of), int(hour_of), int(min_of), int(sec_of))
+    start_time = datetime(int(year_of), int(month_of), int( date_of), int(hour_of), int(min_of), int(sec_of),int(msec_of))
     end_time = start_time + timedelta(minutes=45)
     timezone = 'Asia/Kolkata'
 

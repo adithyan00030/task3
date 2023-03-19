@@ -78,9 +78,9 @@ WSGI_APPLICATION = 'userlogin.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'blog_app',
+        'NAME': 'hospital',
         'USER': 'root',
-        'PASSWORD': 'Velk@1205',
+        'PASSWORD': 'mysql',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
