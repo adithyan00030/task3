@@ -95,6 +95,7 @@ class Appointment(models.Model):
     end_time = models.TimeField()
     speciality = models.CharField(
         choices=SPECIALITY, max_length=100)
+    current_time=models.TimeField()
 
     def __str__(self):
         return str(self.id)

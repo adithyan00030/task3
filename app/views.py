@@ -184,7 +184,7 @@ def create_appoint(request, pk):
             docof = User.objects.get(Q(username=doctor.username))
             app_time = form.cleaned_data['app_time']
             speciality = form.cleaned_data['speciality']
-            end_time = calendar_app(full_name, app_date, app_time, location)
+            end_time= calendar_app(full_name, app_date, app_time, location)
             print(type(end_time))
             appoint = Appointment( doctor_name=docof, patient_name=user, app_date=app_date, app_time=app_time, speciality=speciality, end_time=end_time)
             appoint.save()
@@ -244,6 +244,7 @@ def calendar_app(doctor, dateof, timeof, city):
 
     start_time = datetime(int(year_of), int(month_of), int( date_of), int(hour_of), int(min_of), int(sec_of),int(msec_of))
     end_time = start_time + timedelta(minutes=45)
+
     timezone = 'Asia/Kolkata'
 
     description = "Appointment with Doctor " + str(doctor)
